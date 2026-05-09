@@ -12,14 +12,8 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    # Sur Mac Apple Silicon, pas de GPU NVIDIA, on utilise le CPU/MPS
+    # Sur Mac Apple Silicon, Ollama tourne nativement (pas dans Docker)
+    # Ce container est optionnel - on utilise Ollama installé via brew
     platform: linux/arm64
 
   # ============================================
