@@ -1,6 +1,14 @@
 import Foundation
 
-struct Project: Identifiable, Codable {
+struct Project: Identifiable, Codable, Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: Project, rhs: Project) -> Bool {
+        lhs.id == rhs.id
+    }
+    
     var id = UUID()
     var name: String
     var sourceFilePath: String
