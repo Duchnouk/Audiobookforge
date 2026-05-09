@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Installer les dépendances système
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copier les dépendances Python
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# API backend (FastAPI)
+RUN pip install --no-cache-dir fastapi uvicorn
+
+# Copier le backend
+COPY backend/ /app/backend/
+
+# Port de l'API
+EXPOSE 8000
+
+# Lancer l'API
+CMD ["uvicorn", "backend.api:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  # ============================================
+  # Ollama - LLM local pour les balises émotionnelles
+  # ============================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: audiobookforge-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # Sur Mac Apple Silicon, pas de GPU NVIDIA, on utilise le CPU/MPS
+    platform: linux/arm64
+
+  # ============================================
+  # Backend Python - Extraction + Génération audio
+  # ============================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: audiobookforge-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./models:/app/models
+      - ./outputs:/app/outputs
+      - backend_data:/app/data
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - MODEL_DIR=/app/models/fishaudio-s2-pro-8bit-mlx
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - ollama
+    # Sur Mac, pas de GPU NVIDIA, mais on peut utiliser MPS via mlx
+    # mlx-speech nécessite un environnement Mac natif, pas Docker
+    # Ce container sert surtout pour l'extraction de texte
+    platform: linux/arm64
+
+volumes:
+  ollama_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /Volumes/EXTERNAL_DRIVE/audiobookforge/ollama
+      o: bind
+  backend_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /Volumes/EXTERNAL_DRIVE/audiobookforge/data
+      o: bind
