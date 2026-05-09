@@ -157,9 +157,39 @@ ollama pull qwen3:30b
 
 # Modèle Fish S2 Pro
 echo -e "${YELLOW}📥 Téléchargement du modèle Fish S2 Pro...${NC}"
-echo -e "${YELLOW}   Télécharge-le depuis Hugging Face :${NC}"
-echo -e "${YELLOW}   https://huggingface.co/fishaudio/fish-speech-1.5${NC}"
-echo -e "${YELLOW}   Place-le dans : ${INSTALL_DIR}/models/fishaudio-s2-pro-8bit-mlx/${NC}"
+FISH_MODEL_DIR="${INSTALL_DIR}/models/fishaudio-s2-pro-8bit-mlx"
+if [ ! -d "$FISH_MODEL_DIR" ] || [ -z "$(ls -A "$FISH_MODEL_DIR" 2>/dev/null)" ]; then
+    echo -e "${YELLOW}   Téléchargement depuis Hugging Face...${NC}"
+    echo -e "${YELLOW}   (cela peut prendre 5-10 minutes)${NC}"
+    mkdir -p "$FISH_MODEL_DIR"
+    
+    # Installer huggingface-hub si nécessaire
+    pip install -q huggingface-hub 2>/dev/null
+    
+    # Télécharger le modèle Fish Speech 1.5 MLX
+    python3 -c "
+from huggingface_hub import snapshot_download
+snapshot_download(
+    repo_id='fishaudio/fish-speech-1.5',
+    local_dir='${FISH_MODEL_DIR}',
+    local_dir_use_symlinks=False,
+    ignore_patterns=['*.pt', '*.bin'],
+)
+" 2>&1 || echo -e "${YELLOW}   ⚠️  Téléchargement automatique échoué. Télécharge manuellement depuis :${NC}"
+    
+    if [ -d "$FISH_MODEL_DIR" ] && [ "$(ls -A "$FISH_MODEL_DIR" 2>/dev/null)" ]; then
+        echo -e "${GREEN}  ✅ Modèle Fish S2 Pro téléchargé${NC}"
+    else
+        echo -e "${YELLOW}   https://huggingface.co/fishaudio/fish-speech-1.5${NC}"
+        echo -e "${YELLOW}   Place les fichiers dans : ${FISH_MODEL_DIR}${NC}"
+    fi
+else
+    echo -e "${GREEN}  ✅ Modèle Fish S2 Pro déjà présent${NC}"
+fi
+
+# Installer mlx-speech
+echo -e "${YELLOW}📦 Installation de mlx-speech...${NC}"
+pip install -q mlx-speech 2>/dev/null && echo -e "${GREEN}  ✅ mlx-speech installé${NC}" || echo -e "${YELLOW}  ⚠️  mlx-speech non installé (optionnel pour l'instant)${NC}"
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════╗${NC}"
