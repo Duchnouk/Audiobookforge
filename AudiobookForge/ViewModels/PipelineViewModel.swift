@@ -99,7 +99,7 @@ class PipelineViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            let (chapters, metadata, coverPath) = try textExtractor.extractText(
+            let (chapters, metadata, coverPath) = try await textExtractor.extractText(
                 from: project.sourceFilePath,
                 type: project.sourceFileType
             )
